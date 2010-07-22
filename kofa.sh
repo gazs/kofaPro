@@ -7,7 +7,7 @@ ARLISTA=$(curl -s "http://www.csapi.hu/parts/upload/arlistak/?M=D" | grep -o "[a
 
 DATUM=$(date -d @$(echo $ARLISTA|sed 's/\.jpg//') +%F)
 
-if [ -a arlistak/$DATUM.txt ] 
+if [ -a arlistak/$DATUM.csv ] 
 then
   echo "[ööö]"
   echo "! A legfrissebb árlistát ($DATUM) már feldolgoztuk."
@@ -27,10 +27,13 @@ composite -compose difference -negate racs.tif arlista.tif a.tif
 convert a.tif -depth 8 -resize 180% +negate nagy.tif && echo "[ok]"
 
 echo -n "ocr... "
-tesseract nagy.tif arlistak/$DATUM > /dev/null 2>&1 && echo "[ok]"
+tesseract nagy.tif arlistak/$DATUM-nyers > /dev/null 2>&1 && echo "[ok]"
 
 echo -e "\n"
-cat arlistak/$DATUM.txt
 
+echo -n "feldolgozás..."
+
+# ugyanaz CSV-ben, ami a képen volt
+tail -n +3 arlistak/$DATUM-nyers.txt | perl -pe 's|^.*? [^0-9-]*|\1|' | sed 's|[0-9] \([^-0-9]\)|_\1|g' | sed 's| |,|g'> arlistak/$DATUM.csv
 
 rm arlista.jpg arlista.tif a.tif nagy.tif 
