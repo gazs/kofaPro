@@ -37,9 +37,11 @@ echo -n "feldolgozás..."
 # az első oszlop a termékek neve.
 tail -n +3 arlistak/$DATUM-nyers.txt | perl -pe 's|^.*? [^0-9-]*|\1|' | sed 's|[0-9] \([^-0-9]\)|_\1|g' | sed 's| |,|g' | sed '/^$/d'> arlistak/$DATUM-tmp.csv
 # ne az OCR-ezett termékneveket használjuk; üres oszlop esetén töltsük ki plusz vesszőkkel.
-pr -m -t -s, termekek.txt arlistak/2010-07-20.csv | > awk -F, '{printf "$DATUM,%s,%s,%s,%s,%s,%s\n", $1,$2,$3,$4,$5,$6}' > arlistak/$DATUM.csv
+pr -m -t -s, termekek.txt arlistak/2010-07-20.csv | awk -v datum=$DATUM -F, '{printf "%s,%s,%s,%s,%s,%s,%s\n", datum,$1,$2,$3,$4,$5,$6}' > arlistak/$DATUM.csv
 
 # töltsük szépen be a bulkloaddal appenzsinbe
+# ez egy nagyon csúnya hack, miért kell ezt csináljam?
+export PYTHONPATH=/home/gazs/Scriptkiddyness/kofa/appengine/
 ~/Downloads/google_appengine/appcfg.py upload_data --config_file=appengine/ar_loader.py --kind=Ar --url=http://localhost:8080/remote_api --filename=arlistak/$DATUM.csv appengine
 
 rm arlista.jpg arlista.tif a.tif nagy.tif 
