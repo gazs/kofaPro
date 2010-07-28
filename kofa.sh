@@ -44,4 +44,5 @@ pr -m -t -s, termekek-kisbetu.txt arlistak/2010-07-20.csv | awk -v datum=$DATUM 
 export PYTHONPATH=/home/gazs/Scriptkiddyness/kofa/appengine/
 ~/Downloads/google_appengine/appcfg.py upload_data --config_file=appengine/ar_loader.py --kind=Ar --url=http://localhost:8080/remote_api --filename=arlistak/$DATUM.csv appengine
 
+~/Downloads/google_appengine/appcfg.py upload_data --config_file=appengine/ar_loader.py --kind=Ar --url=http://kofapro.appspot.com/remote_api --filename=arlistak/$DATUM.csv appengine
 rm arlista.jpg arlista.tif a.tif nagy.tif 
