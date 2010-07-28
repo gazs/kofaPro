@@ -2,10 +2,9 @@ from google.appengine.ext import db
 
 class Ar(db.Model):
   datum          = db.DateProperty()
-  aru            = db.TextProperty()
-  ar_vamhazkrt   = db.TextProperty()
-  ar_fehervariut = db.TextProperty()
-  ar_korhazutca  = db.TextProperty()
-  ar_rakocziter  = db.TextProperty()
-  ar_bosnyakter  = db.TextProperty()
-
+  aru            = db.StringProperty()
+  ar_vamhazkrt   = db.StringProperty()
+  ar_fehervariut = db.StringProperty()
+  ar_korhazutca  = db.StringProperty()
+  ar_rakocziter  = db.StringProperty()
+  ar_bosnyakter  = db.StringProperty()
