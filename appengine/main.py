@@ -54,8 +54,8 @@ class Api(webapp.RequestHandler):
     results = query.fetch(50)
     # MEGJELENÍTÉS
     self.response.headers["Content-Type"] = "text/plain"
-    # self.response.out.write("%s %s %s\n\n" % (termek, datum, helyszin))
     for result in results:
+      #refaktor!!!
       if termek and datum and helyszin:
         self.response.out.write(arcsik(result))
       elif not termek and datum and helyszin:
