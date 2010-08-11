@@ -8,6 +8,8 @@ import tesseract
 import urllib2
 from BeautifulSoup import BeautifulSoup
 import re
+import csv
+from datetime import date
 
 def download(url):
   f = urllib2.urlopen(url)
@@ -44,21 +46,33 @@ def arlista_darabol(img):
         balszelek.append(i - (height-1)*width)
     jobbszelek = balszelek[1:]
     oszlopok =  zip(balszelek, jobbszelek)
-    kockak.append([sor.crop((bal,0,jobb, height)) for bal, jobb in oszlopok])
+    kockak.append([sor.crop((bal+1,1,jobb, height)) for bal, jobb in oszlopok])
   return kockak
 
 def process_arlista(href):
   img = Image.open(StringIO.StringIO(download(href)))
   img = img.point(threshold)
   img = img.convert("1")
-  csikok = arlista_darabol(img) 
-  for csik in csikok:
+  csikok = arlista_darabol(img)
+  arlista = []
+
+  datum = date.strftime(date.fromtimestamp(int(re.search("\d{10}",href).group(0))), "%Y-%m-%d")
+  for csik in csikok[1:]:
+    sor = [datum]
     for kocka in csik:
       kocka = kocka.resize((kocka.size[0]*2, kocka.size[1]*2), Image.NEAREST)
-      print tesseract.image_to_string(kocka, lang='csapi').replace("@", "").replace("$","")
+      string = tesseract.image_to_string(kocka, lang='csapi').replace("@", "").replace("$","")
+      #kocka.save("kep-" + string + ".png")
+      sor.append(string)
+    arlista.append(sor)
+  print arlista
+  csviro = csv.writer(open('arlista.csv', 'wb'), quoting=csv.QUOTE_NONNUMERIC)
+  csviro.writerows(arlista)
 
 def main():
-  process_arlista(get_arlistak()[0])
+  arlista = get_arlistak()[0]
+  print arlista
+  process_arlista(arlista)
 
 if __name__ == '__main__':
   main()
