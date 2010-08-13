@@ -62,7 +62,11 @@ def scrub(sor):
       a["min"] = int(re.sub("[^0-9]", "", darabok[0]))
       a["max"] = int(re.sub("[^0-9]", "", darabok[1]))
     except ValueError:
-      print "! valami nem szam:" + str(darabok)
+      if darabok[1] is "":
+        a["med"] = int(re.sub("[^0-9]", "", darabok[0]))
+      else:
+        print "! valami nem szam:" + str(darabok)
+        a["med"] = "!!!!!"
   return a["min"], a["med"], a["max"], a["msg"]
   #print "%s,%s,%s,\"%s\"" % ( 
       #a["min"] if "min" in a else ""  ,
@@ -84,7 +88,7 @@ def process_arlista(href):
     for kocka in csik:
       nagy = kocka.resize((kocka.size[0]*2, kocka.size[1]*2), Image.NEAREST)
       string = tesseract.image_to_string(nagy, lang='csapi')
-      nagy.save("szeletek/{0}-{1}-{2}.tif".format(csikok.index(csik), csik.index(kocka), string))
+      #nagy.save("szeletek/{0}-{1}-{2}.tif".format(csikok.index(csik), csik.index(kocka), string))
       if csik.index(kocka) is 0 and string is "":
         break
       if csik.index(kocka) > 0: # ha nem az áru megnevezése...
@@ -94,14 +98,16 @@ def process_arlista(href):
         sor.append(string)
     if len(sor) > 1 and sor[2]: 
       arlista.append(sor)
-  print arlista
-  csviro = csv.writer(open('arlista.csv', 'wb'), quoting=csv.QUOTE_NONE)
+  # print arlista
+  csviro = csv.writer(open('arlista.csv', 'a'), quoting=csv.QUOTE_NONE)
   csviro.writerows(arlista)
 
 def main():
-  arlista = get_arlistak()[0]
-  print arlista
-  process_arlista(arlista)
+  #arlista = get_arlistak()[0]
+  for arlista in get_arlistak():
+    datum = date.strftime(date.fromtimestamp(int(re.search("\d{10}",arlista).group(0))), "%Y-%m-%d")
+    print datum, arlista
+    process_arlista(arlista)
 
 if __name__ == '__main__':
   main()
