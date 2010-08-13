@@ -36,7 +36,7 @@ def arlista_darabol(img):
       sortetejek.append(sor/width)
   soraljak = sortetejek[1:]
   sorok = zip(sortetejek, soraljak)
-  arlista_sorok = [img.crop((0,teteje,width,alja)) for teteje, alja in sorok]
+  arlista_sorok = [img.crop((0,teteje+5,width,alja)) for teteje, alja in sorok]
   kockak = []
   for sor in arlista_sorok:
     width, height = sor.size
@@ -84,14 +84,18 @@ def process_arlista(href):
     for kocka in csik:
       nagy = kocka.resize((kocka.size[0]*2, kocka.size[1]*2), Image.NEAREST)
       string = tesseract.image_to_string(nagy, lang='csapi')
+      nagy.save("szeletek/{0}-{1}-{2}.tif".format(csikok.index(csik), csik.index(kocka), string))
+      if csik.index(kocka) is 0 and string is "":
+        break
       if csik.index(kocka) > 0: # ha nem az áru megnevezése...
         scrubbed = scrub(string)
         sor = sor + list(scrubbed)
       if csik.index(kocka) is 0:
         sor.append(string)
-    arlista.append(sor)
+    if len(sor) > 1 and sor[2]: 
+      arlista.append(sor)
   print arlista
-  csviro = csv.writer(open('arlista.csv', 'wb'), quoting=csv.QUOTE_NONNUMERIC)
+  csviro = csv.writer(open('arlista.csv', 'wb'), quoting=csv.QUOTE_NONE)
   csviro.writerows(arlista)
 
 def main():
