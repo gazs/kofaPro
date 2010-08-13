@@ -49,6 +49,28 @@ def arlista_darabol(img):
     kockak.append([sor.crop((bal+1,1,jobb, height)) for bal, jobb in oszlopok])
   return kockak
 
+def scrub(sor):
+  darabok = sor.split("-")
+  #a = {}
+  a = {"min":None, "med":None, "max":None, "msg":None}
+
+  if len(darabok) == 1 and re.match("^\d+$", darabok[0]):
+    a["med"] = int(darabok[0])
+  if len(darabok) == 2:
+    a["msg"] = "".join(re.findall("[^0-9]", darabok[1]))
+    try:
+      a["min"] = int(re.sub("[^0-9]", "", darabok[0]))
+      a["max"] = int(re.sub("[^0-9]", "", darabok[1]))
+    except ValueError:
+      print "! valami nem szam:" + str(darabok)
+  return a["min"], a["med"], a["max"], a["msg"]
+  #print "%s,%s,%s,\"%s\"" % ( 
+      #a["min"] if "min" in a else ""  ,
+      #a["med"] if "med" in a else ""  ,
+      #a["max"] if "max" in a else ""  ,
+      #a["msg"] if "msg" in a else ""  
+      #)
+
 def process_arlista(href):
   img = Image.open(StringIO.StringIO(download(href)))
   img = img.point(threshold)
@@ -60,10 +82,13 @@ def process_arlista(href):
   for csik in csikok[1:]:
     sor = [datum]
     for kocka in csik:
-      kocka = kocka.resize((kocka.size[0]*2, kocka.size[1]*2), Image.NEAREST)
-      string = tesseract.image_to_string(kocka, lang='csapi').replace("@", "").replace("$","")
-      #kocka.save("kep-" + string + ".png")
-      sor.append(string)
+      nagy = kocka.resize((kocka.size[0]*2, kocka.size[1]*2), Image.NEAREST)
+      string = tesseract.image_to_string(nagy, lang='csapi')
+      if csik.index(kocka) > 0: # ha nem az áru megnevezése...
+        scrubbed = scrub(string)
+        sor = sor + list(scrubbed)
+      if csik.index(kocka) is 0:
+        sor.append(string)
     arlista.append(sor)
   print arlista
   csviro = csv.writer(open('arlista.csv', 'wb'), quoting=csv.QUOTE_NONNUMERIC)
