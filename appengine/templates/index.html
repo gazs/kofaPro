@@ -1,8 +1,9 @@
 <li>datum: {{ datum }}</li>
 <li>hely: {{ hely  }}</li>
 <li>aru: {{ aru }}</li>
+<h2>{{datum}}</h2>
 <table>
-  <tr><th>dátum</th>áru</th><th>vámházkrt</th><th>fehérváriút</th><th>kórházutca</th><th>rákóczitér</th><th>bosnyáktér</th></tr>
+  <tr>{% if not datum %}<th>dátum</th>{%endif%}<th>áru</th><th>vámházkrt</th><th>fehérváriút</th><th>kórházutca</th><th>rákóczitér</th><th>bosnyáktér</th></tr>
 {% for sor in sorok %}
 <tr>
   {% if not datum %}
