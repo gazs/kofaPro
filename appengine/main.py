@@ -36,7 +36,7 @@ class QHandler(webapp.RequestHandler):
       if i in helyek: hely = i
       if re.match("[0-9]{4}-[0-9]{2}-[0-9]{2}", i): datum = datetime.datetime.strptime(i, '%Y-%m-%d').date()
     dbg = ""
-    if datum or aru:
+    if datum or aru or hely:
       limit = 50
       q = models.Csapi.all()
       if datum:
@@ -51,8 +51,8 @@ class QHandler(webapp.RequestHandler):
         'datum': datum,
         'hely': hely,
         'aru': aru,
-        'sorok': sorok,
-        'dbg': dbg,
+        'headers': ["egy", "két", "há"],
+        'rows': [[1,2,3],[4,5,6]]
         }
     if extension is "html":
       templatepath = os.path.join(os.path.dirname(__file__), 'templates/index.html')

@@ -1,39 +1,18 @@
 <li>datum: {{ datum }}</li>
 <li>hely: {{ hely  }}</li>
 <li>aru: {{ aru }}</li>
-<h2>{{datum}}</h2>
+
 <table>
-  <tr>{% if not datum %}<th>dátum</th>{%endif%}<th>áru</th><th>vámházkrt</th><th>fehérváriút</th><th>kórházutca</th><th>rákóczitér</th><th>bosnyáktér</th></tr>
-{% for sor in sorok %}
-<tr>
-  {% if not datum %}
-  <td>{{sor.datum}}</td>
-  {% endif %}
-  <td>{{sor.aru}}</td>
-  <td>{% if sor.vamhazkrt_min and sor.vamhazkrt_max %}
-    {{sor.vamhazkrt_min}}-{{sor.vamhazkrt_max}}{{sor.vamhazkrt_msg}}
-    {% else %}{% if sor.vamhazkrt_med %} {{sor.vamhazkrt_med}} {% endif %}
-    {% endif %}
+  <tr>
+  {% for header in headers %}
+  <th>{{ header }}</th>
+  {% endfor %}
+  </tr>
+  {% for row in rows %}
+  <tr>
+    {% for cell in row %}
+    <td>{{ cell }}</td>
+    {% endfor %}
   </td>
-  <td>{% if sor.fehervariut_min and sor.fehervariut_max %}
-    {{sor.fehervariut_min}}-{{sor.fehervariut_max}}{{sor.fehervariut_msg}}
-    {% else %}{% if sor.fehervariut_med %} {{sor.fehervariut_med}} {% endif %}
-    {% endif %}
-  </td>
-  <td>{% if sor.korhazutca_min and sor.korhazutca_max %}
-    {{sor.korhazutca_min}}-{{sor.korhazutca_max}}{{sor.korhazutca_msg}}
-    {% else %}{% if sor.korhazutca_med %} {{sor.korhazutca_med}} {% endif %}
-    {% endif %}
-  </td>
-  <td>{% if sor.rakocziter_min and sor.rakocziter_max %}
-    {{sor.rakocziter_min}}-{{sor.rakocziter_max}}{{sor.rakocziter_msg}}
-    {% else %}{% if sor.rakocziter_med %} {{sor.rakocziter_med}} {% endif %}
-    {% endif %}
-  </td>
-  <td>{% if sor.bosnyakter_min and sor.bosnyakter_max %}
-    {{sor.bosnyakter_min}}-{{sor.bosnyakter_max}}{{sor.bosnyakter_msg}}
-    {% else %}{% if sor.bosnyakter_med %} {{sor.bosnyakter_med}} {% endif %}
-    {% endif %}
-  </td>
-{% endfor %}
+  {% endfor %}
 </table>
