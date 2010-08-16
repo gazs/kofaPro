@@ -35,6 +35,7 @@ class QHandler(webapp.RequestHandler):
     for i in path:
       if i in helyek: hely = i
       if re.match("[0-9]{4}-[0-9]{2}-[0-9]{2}", i): datum = datetime.datetime.strptime(i, '%Y-%m-%d').date()
+      if i not in helyek and not re.match("[\d-]", i): aru = i
     dbg = ""
     if datum or aru or hely:
       limit = 50
