@@ -7,8 +7,15 @@ from google.appengine.ext.webapp import util
 from google.appengine.ext.webapp import template
 import urllib
 import re
+import time
 import datetime
 import models
+
+def vajon_datum(d):
+  if re.match("[0-9]{4}-[0-9]{2}-[0-9]{2}", d):
+    return True
+  else:
+    return False
 
 def get_helyek():
   properties = models.Csapi._properties
@@ -18,6 +25,43 @@ def get_helyek():
       helyek.append(property.replace("_min",""))
   return helyek
 
+def chart(cim, napok, adatsorok):
+  """
+  cim: string
+  napok: [datetime, datetime]
+  adatsorok: [150,..]
+  """
+  napok.reverse()
+  for adatsor in adatsorok:
+    adatsor.reverse()
+  hezag = 50
+  mini = 0
+  maxi = max([max(adatsor) for adatsor in adatsorok]) + hezag
+  inapok = [str((napok[0]-nap).days) for nap in napok]
+
+  adatsorok = [[str(adat) for adat in adatsor] for adatsor in adatsorok]
+  napcimkek = [str(napok[i]) for i in range(0, len(napok), len(napok) / 7)]
+  chd = []
+  chds = [] 
+  for adatsor in adatsorok:
+    a = "|".join(( ",".join(inapok), ",".join(adatsor) ))
+    chd.append(a)
+    chds.append("0,{0},0,{1}".format(inapok[-1], maxi))
+  params = {
+    "chtt" : cim, 
+    "cht"  : "lxy",
+    "chs"  : "600x300",
+    "chxt" : "x,y",
+    "chg"  : "{0},{1}".format(7, ((100.0/maxi)*50) ),
+    "chxr" : "0,{0},{1}|1,{2},{3}".format(inapok[0], inapok[-1], mini, maxi), # id, min, max
+    "chxl" : "0:|" + "|".join(napcimkek),
+    "chm": "o,FF9900,0,-1,5.0|o,FF9900,1,-1,5.0", 
+    "chd"  : "t:" + "|".join(chd), 
+    "chds" : ",".join(chds)
+  }
+  #params["chd"] = "t:" + "|".join(chd)
+  return "http://chart.apis.google.com/chart?{0}".format(urllib.urlencode(params))
+
 class MainHandler(webapp.RequestHandler):
   def get(self):
     self.response.out.write("helloworld")
@@ -25,41 +69,58 @@ class MainHandler(webapp.RequestHandler):
 class QHandler(webapp.RequestHandler):
   def get(self):
     path = self.request.path.split("/")[2:]
-    try:
-      extension = path[-1].split(".")[1]
-    except IndexError:
-      extension = "html"
     path = [urllib.unquote(x) for x in path]
-    datum = hely = aru = None
-    helyek = get_helyek()
-    for i in path:
-      if i in helyek: hely = i
-      if re.match("[0-9]{4}-[0-9]{2}-[0-9]{2}", i): datum = datetime.datetime.strptime(i, '%Y-%m-%d').date()
-      if i not in helyek and not re.match("[\d-]", i): aru = i
-    dbg = ""
-    if datum or aru or hely:
-      limit = 50
-      q = models.Csapi.all()
-      if datum:
-        q.filter('datum', datum)
-      if aru:
-        q.filter('aru', aru)
-      sorok = q.fetch(limit)
-      dbg = str(sorok)
+    sorrend = []
+    for part in path:
+      if part in get_helyek():
+        sorrend.append("hely")
+      if vajon_datum(part):
+        sorrend.append("datum")
+      if part not in get_helyek() and not vajon_datum(part) and not re.match("\d", part) and part is not "":
+        sorrend.append("aru")
+    q = models.Csapi.all()
+    q.order("-datum")
+    limit = 50
+    if "datum" in sorrend:
+      datum = path[sorrend.index("datum")]
+      q.filter("datum =", datetime.datetime.strptime(datum, '%Y-%m-%d'))
+    if "aru" in sorrend:
+      aru = path[sorrend.index("aru")]
+      q.filter("aru =", aru)
+    r = []
+    for sor in q.fetch(limit):
+      a = {"datum":str(sor.datum), "aru":sor.aru}
+      for property in sor.properties():
+        if "hely" in sorrend:
+          if property.startswith(path[sorrend.index("hely")]):
+            a[property] = eval("sor.{0}".format(property))
+        else: # akkor viszont mindegyik kell. kicsit redundáns így írni, de hogy jobb?
+          a[property] = eval("sor.{0}".format(property))
+      r.append(a)
     template_values = {
-        'extension': extension,
-        'path': path,
-        'datum': datum,
-        'hely': hely,
-        'aru': aru,
-        'headers': ["egy", "két", "há"],
-        'rows': [[1,2,3],[4,5,6]]
+        "info": path, 
+        "sorok" : r
         }
-    if extension is "html":
-      templatepath = os.path.join(os.path.dirname(__file__), 'templates/index.html')
-      self.response.out.write(template.render(templatepath, template_values))
-    else:
-      self.response.out.write("plaintext,mi?")
+    oszlopok = []
+    if "datum" not in sorrend:
+      oszlopok.append("dátum")
+    if "datum" in sorrend:
+      template_values["datum"] = True
+    if "hely" not in sorrend:
+      oszlopok += get_helyek()
+    if "hely" in sorrend:
+      oszlopok.append(path[sorrend.index("hely")])
+      template_values["hely"] = path[sorrend.index("hely")]
+    if "aru" in sorrend:
+      template_values["aru"] = True
+      napok = [s["datum"] for s in r]
+      adatsorok = []
+      adatsorok.append([s["vamhazkrt_min"] for s in r])
+      adatsorok.append([s["vamhazkrt_max"] for s in r])
+      template_values["chart"] = chart(aru, napok, adatsorok)
+    template_values["oszlopok"] = oszlopok
+    path = os.path.join(os.path.dirname(__file__), 'templates/index.html')
+    self.response.out.write(template.render(path,template_values))
 
 def main():
   application = webapp.WSGIApplication([
