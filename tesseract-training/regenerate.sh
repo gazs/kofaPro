@@ -1,7 +1,9 @@
-unicharset_extractor csapi.box && 
-tesseract csapi.tif junk nobatch box.train.stderr && 
-mftraining csapi.tr && 
-cntraining csapi.tr && 
+unicharset_extractor csapi-regular.box csapi-bold.box csapi-bold-italic.box && 
+tesseract csapi-regular.tif junk nobatch box.train.stderr &&
+tesseract csapi-bold.tif junk nobatch box.train.stderr &&
+tesseract csapi-bold-italic.tif junk nobatch box.train.stderr &&
+mftraining csapi-regular.tr csapi-bold.tr csapi-bold-italic.tr && 
+cntraining csapi-regular.tr csapi-bold.tr csapi-bold-italic.tr && 
 wordlist2dawg frequent_words_list freq-dawg
 wordlist2dawg words_list word-dawg
 mv inttemp csapi.inttemp && 

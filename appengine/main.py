@@ -17,6 +17,11 @@ def vajon_datum(d):
   else:
     return False
 
+def get_tegnap(datum):
+  datum = datetime.datetime.strptime(datum, '%Y-%m-%d')
+  t = models.Csapi.all().filter("datum <", datum).filter("datum >", datum-datetime.timedelta(days=7)).order("-datum").fetch(1)[0].datum
+  return t
+
 def get_helyek():
   properties = models.Csapi._properties
   helyek = []
@@ -84,11 +89,21 @@ class QHandler(webapp.RequestHandler):
     if "datum" in sorrend:
       datum = path[sorrend.index("datum")]
       q.filter("datum =", datetime.datetime.strptime(datum, '%Y-%m-%d'))
+      z = models.Csapi.all().order("-datum").filter("datum = ", get_tegnap(datum))
     if "aru" in sorrend:
       aru = path[sorrend.index("aru")]
       q.filter("aru =", aru)
+      try:
+        z.filter("aru =", aru)
+      except UnboundLocalError:
+        pass
     r = []
-    for sor in q.fetch(limit):
+    try:
+      zs = z.fetch(limit)
+    except UnboundLocalError:
+      pass
+    fecs = q.fetch(limit)
+    for sor in fecs:
       a = {"datum":str(sor.datum), "aru":sor.aru}
       for property in sor.properties():
         if "hely" in sorrend:
@@ -96,6 +111,8 @@ class QHandler(webapp.RequestHandler):
             a[property] = eval("sor.{0}".format(property))
         else: # akkor viszont mindegyik kell. kicsit redundáns így írni, de hogy jobb?
           a[property] = eval("sor.{0}".format(property))
+        if property.endswith("_min"): # hackish, hogy adom hozzá szépen?
+          #a[property.replace('_min', '') + "_tegnap"] = "X" 
       r.append(a)
     template_values = {
         "info": path, 
@@ -104,11 +121,11 @@ class QHandler(webapp.RequestHandler):
     oszlopok = []
     if "datum" not in sorrend:
       oszlopok.append("dátum")
-    if "datum" in sorrend:
+    elif "datum" in sorrend:
       template_values["datum"] = True
     if "hely" not in sorrend:
       oszlopok += get_helyek()
-    if "hely" in sorrend:
+    elif "hely" in sorrend:
       oszlopok.append(path[sorrend.index("hely")])
       template_values["hely"] = path[sorrend.index("hely")]
     if "aru" in sorrend:

@@ -42,6 +42,7 @@ pr -m -t -s, termekek-kisbetu.txt arlistak/2010-07-20.csv | awk -v datum=$DATUM 
 # töltsük szépen be a bulkloaddal appenzsinbe
 # ez egy nagyon csúnya hack, miért kell ezt csináljam?
 export PYTHONPATH=/home/gazs/Scriptkiddyness/kofa/appengine/
+~/Downloads/google_appengine/appcfg.py upload_data --config_file=appengine/ar_loader.py --kind=Csapi --url=http://localhost:8080/remote_api --filename=arlista.csv ~/Scriptkiddyness/kofa/appengine
 ~/Downloads/google_appengine/appcfg.py upload_data --config_file=appengine/ar_loader.py --kind=Ar --url=http://localhost:8080/remote_api --filename=arlistak/$DATUM.csv appengine
 
 ~/Downloads/google_appengine/appcfg.py upload_data --config_file=appengine/ar_loader.py --kind=Ar --url=http://kofapro.appspot.com/remote_api --filename=arlistak/$DATUM.csv appengine
