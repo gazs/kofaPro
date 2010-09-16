@@ -1,4 +1,4 @@
-A csapi.hu-n közölt piaci árfolyamok CSV-be scrapelve
+A csapi.hu-n közölt piaci árfolyamok ( http://csapi.hu/new/arak.php ) CSV-be scrapelve
 
 Az oszlopok (figyelt piacok) sorrendben:
 - Vámház krt-i Vásárcsarnok
