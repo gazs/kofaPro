@@ -1,0 +1,8 @@
+A csapi.hu-n közölt piaci árfolyamok CSV-be scrapelve
+
+Az oszlopok (figyelt piacok) sorrendben:
+- Vámház krt-i Vásárcsarnok
+- Fehérvári úti Vásárcsarnok
+- Kórház utcai Vásárcsarnok
+- Rákóczi téri Vásárcsarnok
+- Bosnyák téri Vásárcsarnok
